@@ -27,6 +27,6 @@ Global
 		{6A005891-A3D6-4398-A729-F645397D573A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Andr.Unit\Andr.Unit.csproj
+		StartupItem = Android.NUnitLite\Android.NUnitLite.csproj
 	EndGlobalSection
 EndGlobal

@@ -314,6 +314,9 @@
     <Compile Include="NUnitLite\TestCaseData.cs" />
     <Compile Include="NUnitLite\TestContext.cs" />
     <Compile Include="NUnitLite\Throws.cs" />
+    <Compile Include="AndrRunner\ITestReporter.cs" />
+    <Compile Include="AndrRunner\DefaultTestListener.cs" />
+    <Compile Include="AndrRunner\TestRocks.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="NUnitLite\" />

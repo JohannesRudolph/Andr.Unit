@@ -35,7 +35,7 @@ namespace Android.NUnitLite
 {
 	public class AndroidRunner : ITestListener, ITestFilter
 	{
-		public int passed, failed, skipped, inconclusive;
+		ITestReporter reporter;
 		Options options;
 		NUnitLiteTestAssemblyBuilder builder = new NUnitLiteTestAssemblyBuilder ();
 		Dictionary<string, object> empty = new Dictionary<string, object> ();
@@ -45,6 +45,12 @@ namespace Android.NUnitLite
 		public AndroidRunner ()
 		{
 		}
+	
+		public ITestReporter Reporter {
+			get { return reporter ?? (reporter = new DefaultTestListener(Writer)); }
+			set { reporter = value; }
+		}
+
 		public bool TerminateAfterExecution { get; set; }
 		
 		public Options Options { 
@@ -120,12 +126,6 @@ namespace Android.NUnitLite
 			Writer.WriteLine ("[Device Date/Time:\t{0}]", now); // to match earlier C.WL output
 			
 			// FIXME: add data about how the app was compiled (e.g. ARMvX, LLVM, Linker options)
-
-			passed = 0;
-			failed = 0;
-			skipped = 0;
-		 	inconclusive = 0;
-
 			return true;
 		}
 		
@@ -139,62 +139,24 @@ namespace Android.NUnitLite
 		
 		public void TestStarted (ITest test)
 		{
-			if (test is TestSuite) {
-				Writer.WriteLine ();
-				time.Push (DateTime.UtcNow);
-				Writer.WriteLine (test.Name);
-			}
+			Reporter.TestStarted(test);
+			TestSuite ts = test as TestSuite;
+			if (ts != null)
+				Reporter.TestSuiteStarted(ts);
 		}
 
 		Stack<DateTime> time = new Stack<DateTime> ();
 			
-		public void TestFinished (ITestResult result)
+		public void TestFinished (ITestResult r)
 		{
-			AndroidRunner.Results [result.Test.FullName ?? result.Test.Name] = result as TestResult;
-			
-			if (result.Test is TestSuite) {
-				//if (!result.IsError && !result.IsFailure && !result.IsSuccess && !result.Executed)
-				//Writer.WriteLine ("\t[INFO] {0}", result.Message);
-				if (result.ResultState.Status != TestStatus.Failed
-					&& result.ResultState.Status != TestStatus.Skipped
-					&& result.ResultState.Status != TestStatus.Passed
-					&& result.ResultState.Status != TestStatus.Inconclusive)
-					Writer.WriteLine ("\t[INFO] {0}", result.Message);
-				
-				var diff = DateTime.UtcNow - time.Pop ();
-				Writer.WriteLine ("{0} : {1} ms", result.Test.Name, diff.TotalMilliseconds);
+			TestResult result = r as TestResult;
+			AndroidRunner.Results [r.Test.FullName ?? r.Test.Name] = result;
 
-			} else {
-				if (result.ResultState.Status == TestStatus.Passed) {
-				Writer.Write ("\tTest Passed: ");
-					passed++;
-				} else if (result.ResultState.Status == TestStatus.Failed || result.ResultState.Label == "Error") {
-					Writer.Write ("\tTest Failed: ");
-					failed++;
-				} else if (result.ResultState.Status == TestStatus.Skipped || result.ResultState.Label == "Ignored" || result.ResultState.Label == "Invalid"){
-					Writer.Write ("\tTest Skipped: ");
-					skipped++;
-				} else if (result.ResultState.Status == TestStatus.Inconclusive) {
-					Writer.Write ("\tTest Inconclusive: ");
-					inconclusive++;
-				}
+			Reporter.TestFinished(result);
 
-				Writer.Write (result.Test.Name);
-
-				string message = result.Message;
-				if (!String.IsNullOrEmpty (message)) {
-					Writer.Write (" : {0}", message.Replace ("\r\n", "\\r\\n"));
-				}
-			
-				Writer.WriteLine ();
-
-				string stacktrace = result.StackTrace;
-				if (!String.IsNullOrEmpty (result.StackTrace)) {
-					string[] lines = stacktrace.Split (new char [] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-					foreach (string line in lines)
-						Writer.WriteLine ("\t\t{0}", line);
-				}
-			}
+			TestSuite ts = result.Test as TestSuite;
+			if (ts != null)
+				Reporter.TestSuiteFinished(ts);
 		}
 		
 		static AndroidRunner runner = new AndroidRunner ();
@@ -232,7 +194,7 @@ namespace Android.NUnitLite
 
 		public void TestOutput (TestOutput testOutput)
 		{
-			//TODO: Not yet implemented
+			reporter.TestOutput(testOutput);
 		}
 
 		public bool Pass (ITest pass)
