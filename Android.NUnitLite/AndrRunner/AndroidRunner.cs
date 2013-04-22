@@ -85,8 +85,8 @@ namespace Android.NUnitLite
 					Console.WriteLine ("[{0}] Sending '{1}' results to {2}:{3}", now, message, Options.HostName, Options.HostPort);
 					try {
 						Writer = new TcpTextWriter (Options.HostName, Options.HostPort);
-					} catch (SocketException) {
-						string msg = String.Format ("Cannot connect to {0}:{1}. Start network service or disable network option", options.HostName, options.HostPort);
+					} catch (SocketException ex) {
+						string msg = String.Format ("Cannot connect to {0}:{1}. Start network service or disable network option. Exception: {2}", options.HostName, options.HostPort, ex);
 						Toast.MakeText (activity, msg, ToastLength.Long).Show ();
 						return false;
 					}
