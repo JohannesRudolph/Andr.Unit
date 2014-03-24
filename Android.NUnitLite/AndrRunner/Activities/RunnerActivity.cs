@@ -132,7 +132,14 @@ namespace Android.NUnitLite.UI
 					Runner.Run (suite); 
 				}
 			} finally {
-				Runner.CloseWriter ();
+                try
+                {
+                    Runner.CloseWriter ();    
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine( "Ecountered exception closing writer. Considering this non-fatal and thus swallowing. The exception was:  " + ex );
+                }
 			}
 
 			foreach (TestElement te in main) {
