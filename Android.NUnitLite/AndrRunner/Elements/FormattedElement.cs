@@ -71,6 +71,13 @@ namespace Android.NUnitLite.UI {
 		
 		public void SetCaption (string html)
 		{
+            var mustWorkaroundSomeStupidBugWeDontReallyCareAbout = _caption == null;
+            if (mustWorkaroundSomeStupidBugWeDontReallyCareAbout)
+            {
+                Console.Out.WriteLine( "Couldn't set text for FormattedElement, GetView not called before SetCaption()" );
+                return;
+            }
+
 			_caption.SetText (Android.Text.Html.FromHtml (html), TextView.BufferType.Spannable);
 		}
 	}
